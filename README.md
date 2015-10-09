@@ -30,4 +30,4 @@ In project_root/config/structures create data.json file (or give other structure
 - "engines" - add path to module that will load mongodb to engines array
 - "loaders" - add built-in "data" loader to array with loaders
 - "libs" - adding base mongolayer, base mongolayer class will be accessible via env.lib.MongoLayer
-- "config" - the engine will search for config.mongodb object when trying to connect to database. congig.mongodb.options will be passed directly to mongodb.MongoClient.connect. Read more about options here [http://mongodb.github.io/node-mongodb-native/api-generated/mongoclient.html]
+- "config" - the engine will search for config.mongodb object when trying to connect to database. congig.mongodb.options will be passed directly to mongodb.MongoClient.connect. Read more about options here http://mongodb.github.io/node-mongodb-native/api-generated/mongoclient.html
