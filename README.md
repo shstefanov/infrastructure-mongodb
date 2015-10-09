@@ -1,4 +1,4 @@
-Installation (for now)
+
     npm install https://github.com/shstefanov/infrastructure-server-datalayer-mongodb.git
 
 Make infrastructure structure using this package
