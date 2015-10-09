@@ -1,0 +1,12 @@
+{
+  "name": "infrastructure-server-datalayer-mongodb",
+  "version": "0.0.1",
+  "private": false,
+  "author": {
+    "name": "Stefan Stefanov",
+    "email": "s.h.stefanov@mail.bg"
+  },
+  "dependencies": {
+    "mongodb": "latest"
+  }
+}
