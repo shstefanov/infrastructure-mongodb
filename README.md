@@ -30,7 +30,7 @@ In project_root/config/structures create data.json file (or give other structure
       }
     }
 
-- "path" is folder where your structure components are located (based on rootDir)
+- "path" is folder where your structure modules are located (based on rootDir)
 - "engines" - add path to module that will load mongodb to engines array
 - "loaders" - add built-in "data" loader to array with loaders
 - "libs" - adding base mongolayer, base mongolayer class will be accessible via env.lib.MongoLayer
@@ -62,9 +62,10 @@ In structure folder path create file of type (named for example MyMongoResource.
         },
 
         someSpecificQuery: function(param_1, options, cb){
-          // this is mongodb collection instance
-          // read more about it here - http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html
+          
+          // this is mongodb collection instance that represents current resource
           var collection = this.collection;
+          // read more about it here - http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html
 
           // The DataLayer instance provides:
           // this.create(doc, cb);
