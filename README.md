@@ -1,3 +1,6 @@
+Installation (for now):
+    npm install https://github.com/shstefanov/infrastructure-server-datalayer-mongodb.git
+    
 Make infrastructure structure using this package
 
 In project_root/config/structures create data.json file (or give other structure name) with the following content:
