@@ -5,8 +5,5 @@
   "author": {
     "name": "Stefan Stefanov",
     "email": "s.h.stefanov@mail.bg"
-  },
-  "dependencies": {
-    "mongodb": "latest"
   }
 }

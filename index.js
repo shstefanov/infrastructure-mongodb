@@ -1,9 +1,6 @@
 var _              = require("../infrastructure/node_modules/underscore");
-var DataLayer      = require("../infrastructure/lib/DataLayers/DataLayer.js");
-var mongodb        = require("mongodb");
+var DataLayer      = require("../infrastructure/lib/DataLayer.js");
 module.exports     = DataLayer.extend("MongoDBLayer", {
-
-  driver: "mongodb",
 
   parseArguments: function(args){
     switch(args.length){
@@ -23,7 +20,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   applyOptions: function(args, options){
     if(args[1].objectify){
-      var data = args[0], helpers = this.env.helpers, paths = args[1].objectify;
+      var data = args[0], helpers = this.env.helpers, paths = args[1].objectify ;
       for(var i = 0; i<paths.length; i++){
         helpers.patch(data, paths[i], helpers.objectify(helpers.resolve(data, paths[i])));
       }
@@ -64,15 +61,13 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   update:  function(pattern, options, cb){
     if(pattern._id){
-      pattern._id = mongodb.ObjectId(pattern._id);
+      pattern._id = this.env.helpers.objectify(pattern._id);
       this.collection.save(_.pick(pattern, this.publicFields || _.keys(this.fields)), function(err, response){
         if(err) return cb(err);
         cb(null, pattern);
       });      
     }
-    else {
-
-    }
+    else cb("Can't update model - _id not found");
   }
   
 }, {
