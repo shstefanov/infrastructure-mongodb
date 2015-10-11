@@ -1,4 +1,4 @@
-var _              = require("../infrastructure/node_modules/underscore");
+var _              = require("underscore");
 var DataLayer      = require("../infrastructure/lib/DataLayer.js");
 module.exports     = DataLayer.extend("MongoDBLayer", {
 
