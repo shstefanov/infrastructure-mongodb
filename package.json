@@ -7,6 +7,13 @@
     "email": "s.h.stefanov@mail.bg"
   },
   "dependencies": {
+    "infrastructure": "git+https://github.com/shstefanov/infrastructure.git#dev",
     "underscore": "latest"
+  },
+  "devDependencies": {
+    "mocha": "latest"
+  },
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha --recursive --colors --sort --check-leaks --full-trace --no-exit --throw-deprecation test"
   }
 }

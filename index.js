@@ -1,5 +1,5 @@
 var _              = require("underscore");
-var DataLayer      = require("../infrastructure/lib/DataLayer.js");
+var DataLayer      = require("infrastructure/lib/DataLayer.js");
 module.exports     = DataLayer.extend("MongoDBLayer", {
 
   parseArguments: function(args){
@@ -57,6 +57,17 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
     this.collection.remove(pattern, options, function(err, response){
       cb(err? err : null, err? null : response.result);
     });
+  },
+
+  save:  function(pattern, options, cb){
+    if(pattern._id){
+      pattern._id = this.env.helpers.objectify(pattern._id);
+      this.collection.save(_.pick(pattern, this.publicFields || _.keys(this.fields)), function(err, response){
+        if(err) return cb(err);
+        cb(null, pattern);
+      });      
+    }
+    else cb("Can't update model - _id not found");
   },
 
   update:  function(pattern, options, cb){
