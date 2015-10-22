@@ -2,6 +2,11 @@ var _              = require("underscore");
 var DataLayer      = require("infrastructure/lib/DataLayer.js");
 module.exports     = DataLayer.extend("MongoDBLayer", {
 
+  constructor: function(){
+    if(!this.publicFields) this.publicFields = _.keys(this.fields);
+    return DataLayer.apply(this, arguments);
+  },
+
   parseArguments: function(args){
     switch(args.length){
       case 0: return false;
@@ -30,17 +35,21 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   create:  function(pattern, options, cb){
+    var self = this;
     this.collection.insert(pattern, function(err, result){
-      cb(err? err : null, err? null : pattern);
+      cb(err? err : null, err? null : _.pick(result, self.publicFields));
     });
   },
 
   find:    function(pattern, options, cb){
-    this.collection.find(pattern||{}, options||{}, function(err, cursor){
+    var publicFields = this.publicFields;
+    options = options || {};
+    if(!options.fields) options.fields = this.publicFields;
+    this.collection.find(pattern||{}, options, function(err, cursor){
       if(err) return cb(err);
       cursor.toArray(function(err, docs){
         if(err) return cb(err);
-        cb(null, docs);
+        cb(null, docs.map(function(doc){ return _.pick(doc, publicFields); }));
       });
     });
   },
@@ -50,6 +59,8 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   findOne: function(pattern, options, cb){
+    options = options || {};
+    if(!options.fields) options.fields = this.publicFields;
     this.collection.findOne(pattern, options, cb);
   },
 
@@ -62,7 +73,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   save:  function(pattern, options, cb){
     if(pattern._id){
       pattern._id = this.env.helpers.objectify(pattern._id);
-      this.collection.save(_.pick(pattern, this.publicFields || _.keys(this.fields)), function(err, response){
+      this.collection.save(pattern, function(err, response){
         if(err) return cb(err);
         cb(null, pattern);
       });      
@@ -71,14 +82,10 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   update:  function(pattern, options, cb){
-    if(pattern._id){
-      pattern._id = this.env.helpers.objectify(pattern._id);
-      this.collection.save(_.pick(pattern, this.publicFields || _.keys(this.fields)), function(err, response){
-        if(err) return cb(err);
-        cb(null, pattern);
-      });      
-    }
-    else cb("Can't update model - _id not found");
+    this.collection.update(pattern, options, function(err, response){
+      if(err) return cb(err);
+      cb(null, pattern);
+    });      
   }
   
 }, {
