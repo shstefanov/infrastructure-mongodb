@@ -83,6 +83,8 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   
 }, {
 
+  baseMethods: DataLayer.baseMethods.concat(["parseArguments", "applyOptions"]),
+
 
   setupDatabase: function(self, env, name){
     var Prototype   = this;
