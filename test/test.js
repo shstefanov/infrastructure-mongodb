@@ -80,6 +80,33 @@ describe("Infrastructure MongoDB DataLayer", function(){
       });
     });
 
+    it("Using init method", function(next){
+      var initialized = false;
+      var TestMongoLayer = MongoLayer.extend("TestMongoLayer", {
+        collectionName: "TestCollection",
+
+        fields: {
+          field_a:  _.isNumber,
+          field_b:  _.isString,
+        },
+
+        init: function(cb){
+          setTimeout(function(){
+            initialized = true;
+            cb();
+          }, 10 );
+        }
+
+      });
+
+      var layer = new TestMongoLayer(test_env, TestMongoLayer, "TestMongoLayer");
+
+      layer.setupNode(function(err){
+        assert.equal(initialized, true);
+        next();
+      });
+    });
+
     it("Sets up indexes", function(next){
 
       var TestMongoLayer = MongoLayer.extend("TestMongoLayer", {
