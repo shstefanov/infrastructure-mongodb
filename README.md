@@ -50,6 +50,8 @@ In structure folder path create file of type (named for example MyMongoResource.
 
 
       return env.lib.MongoLayer.extend("MyMongoResource", {
+
+        init: function(cb){ /* async initialization (optional) - run cb([err]) when done*/ },
         
         collectionName: "MongodbCollectionName", // mongodb collection name for this resource
         primaryKey:     "_id",                   // default is "_id"

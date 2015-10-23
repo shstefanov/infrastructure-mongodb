@@ -25,7 +25,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   applyOptions: function(args, options){
     if(args[1].objectify){
-      var data = args[0], helpers = this.env.helpers, paths = args[1].objectify ;
+      var data = args[0], helpers = this.env.helpers, paths = args[1].objectify;
       for(var i = 0; i<paths.length; i++){
         helpers.patch(data, paths[i], helpers.objectify(helpers.resolve(data, paths[i])));
       }
@@ -49,7 +49,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
       if(err) return cb(err);
       cursor.toArray(function(err, docs){
         if(err) return cb(err);
-        cb(null, docs.map(function(doc){ return _.pick(doc, publicFields); }));
+        cb(null, docs);
       });
     });
   },
@@ -90,17 +90,24 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   
 }, {
 
-  baseMethods: DataLayer.baseMethods.concat(["parseArguments", "applyOptions"]),
+  baseMethods: DataLayer.baseMethods.concat(["parseArguments", "applyOptions", "init"]),
 
 
   setupDatabase: function(self, env, name){
     var Prototype   = this;
     self.driver     = env.engines.mongodb;
-    self.setupNode  = function(cb){ Prototype.createCollection(self, env, function(err){
-      if(err) return cb(err);
-      env.i.do("log.sys", "DataLayer:mongodb", name);
-      cb();
-    }); }
+    self.setupNode  = function(cb){ 
+      Prototype.createCollection(self, env, function(err){
+        if(err) return cb(err);
+        if(self.init) self.init(finish);
+        else finish();
+        function finish(err){
+          if(err) return cb(err);
+          env.i.do("log.sys", "DataLayer:mongodb", name);
+          cb();
+        }
+      }); 
+    }
   },
 
 
