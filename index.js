@@ -37,14 +37,13 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   create:  function(pattern, options, cb){
     var self = this;
     this.collection.insert(pattern, function(err, result){
-      cb(err? err : null, err? null : _.pick(result, self.publicFields));
+      cb(err? err : null, err? null : pattern);
     });
   },
 
   find:    function(pattern, options, cb){
     var publicFields = this.publicFields;
     options = options || {};
-    if(!options.fields) options.fields = this.publicFields;
     this.collection.find(pattern||{}, options, function(err, cursor){
       if(err) return cb(err);
       cursor.toArray(function(err, docs){
@@ -60,7 +59,6 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   findOne: function(pattern, options, cb){
     options = options || {};
-    if(!options.fields) options.fields = this.publicFields;
     this.collection.findOne(pattern, options, cb);
   },
 
@@ -81,8 +79,9 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
     else cb("Can't update model - _id not found");
   },
 
-  update:  function(pattern, options, cb){
-    this.collection.update(pattern, options, function(err, response){
+  update:  function(pattern, update, options, cb){
+    if(!cb){ cb = options, options = {}; }
+    this.collection.update(pattern, update, options, function(err, response){
       if(err) return cb(err);
       cb(null, pattern);
     });      
