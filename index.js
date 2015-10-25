@@ -2,12 +2,8 @@ var _              = require("underscore");
 var DataLayer      = require("infrastructure/lib/DataLayer.js");
 module.exports     = DataLayer.extend("MongoDBLayer", {
 
-  constructor: function(){
-    if(!this.publicFields) this.publicFields = _.keys(this.fields);
-    return DataLayer.apply(this, arguments);
-  },
-
   parseArguments: function(args){
+
     switch(args.length){
       case 0: return false;
       case 1:
@@ -15,36 +11,49 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
         else return [{},{},args[0]];
       case 2:
         if(typeof args[1] !== "function") return false;
-        else return [args[0],{}, args[1]];
+        else return [
+          args[0],
+          {}, 
+          args[1]
+        ];
       case 3:
         if(typeof args[2] !== "function") return false;
-        else return this.applyOptions([args[0], args[1] || {}, args[2]]);
+        else return [ args[0], args[1], args[2] ];
+      case 4:
+        if(typeof args[3] !== "function") return false;
+        else return [ args[0], args[1], args[2], args[3] ];
       default: return false;
     }
   },
 
-  applyOptions: function(args, options){
-    if(args[1].objectify){
-      var data = args[0], helpers = this.env.helpers, paths = args[1].objectify;
-      for(var i = 0; i<paths.length; i++){
-        helpers.patch(data, paths[i], helpers.objectify(helpers.resolve(data, paths[i])));
-      }
-      delete args[1].objectify;
+  applyObjectify: function(obj, patterns){
+    if(!patterns) return obj;
+    if(typeof patterns === "string") patterns = [patterns];
+    if(Array.isArray(obj)) {var self = this; return obj.map(function(model){ return self.applyObjectify(model, patterns); });}
+    var helpers = this.env.helpers;
+    for(var i = 0; i<patterns.length; i++){
+      var value = helpers.resolve(obj, patterns[i]);
+      if(!value) continue;
+      helpers.patch(obj, patterns[i], helpers.objectify(value) );
     }
-    return args;
+
+    return obj;
+
   },
 
-  create:  function(pattern, options, cb){
+  create:  function(docs, options, cb){
     var self = this;
-    this.collection.insert(pattern, function(err, result){
-      cb(err? err : null, err? null : pattern);
+    docs = this.applyObjectify(docs, options.$objectify);
+    this.collection[Array.isArray(docs)? "insertMany" : "insertOne" ](docs, function(err, result){
+      cb(err? err : null, err? null : docs);
     });
   },
 
   find:    function(pattern, options, cb){
-    var publicFields = this.publicFields;
     options = options || {};
-    this.collection.find(pattern||{}, options, function(err, cursor){
+    pattern = this.applyObjectify(pattern || {}, options.$objectify);
+    var publicFields = this.publicFields;
+    this.collection.find(pattern, options, function(err, cursor){
       if(err) return cb(err);
       cursor.toArray(function(err, docs){
         if(err) return cb(err);
@@ -54,33 +63,38 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   count:    function(pattern, options, cb){
+    options = options || {};
+    pattern = this.applyObjectify(pattern || {}, options.$objectify);
     this.collection.count(pattern, options, cb);
   },
 
   findOne: function(pattern, options, cb){
     options = options || {};
+    pattern = this.applyObjectify(pattern || {}, options.$objectify);
     this.collection.findOne(pattern, options, cb);
   },
 
   delete:  function(pattern, options, cb){ 
+    options = options || {};
+    pattern = this.applyObjectify(pattern || {}, options.$objectify);
     this.collection.remove(pattern, options, function(err, response){
       cb(err? err : null, err? null : response.result);
     });
   },
 
-  save:  function(pattern, options, cb){
-    if(pattern._id){
-      pattern._id = this.env.helpers.objectify(pattern._id);
-      this.collection.save(pattern, function(err, response){
-        if(err) return cb(err);
-        cb(null, pattern);
-      });      
-    }
-    else cb("Can't update model - _id not found");
+  save:  function(doc, options, cb){
+    options = options || {};
+    doc = this.applyObjectify(doc || {}, options.$objectify);
+    this.collection.save(doc, options, function(err, response){
+      if(err) return cb(err);
+      cb(null, doc);
+    });
   },
 
   update:  function(pattern, update, options, cb){
     if(!cb){ cb = options, options = {}; }
+    pattern = this.applyObjectify(_.omit(pattern, ["$objectify"]), pattern.$objectify );
+    update  = this.applyObjectify(_.omit(update,  ["$objectify"]), update.$objectify  );
     this.collection.update(pattern, update, options, function(err, response){
       if(err) return cb(err);
       cb(null, pattern);
@@ -89,7 +103,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   
 }, {
 
-  baseMethods: DataLayer.baseMethods.concat(["parseArguments", "applyOptions", "init"]),
+  baseMethods: DataLayer.baseMethods.concat(["parseArguments", "applyObjectify", "init"]),
 
 
   setupDatabase: function(self, env, name){
