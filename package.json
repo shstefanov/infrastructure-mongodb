@@ -1,13 +1,16 @@
 {
   "name": "infrastructure-server-datalayer-mongodb",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "author": {
     "name": "Stefan Stefanov",
     "email": "s.h.stefanov@mail.bg"
   },
+  "license": "MIT",
+  "repository": "shstefanov/infrastructure-mongodb",
   "dependencies": {
     "infrastructure": "git+https://github.com/shstefanov/infrastructure.git#dev",
+    "mongodb": "^2.0.46",
     "underscore": "latest"
   },
   "devDependencies": {

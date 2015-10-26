@@ -1,7 +1,7 @@
 Installation
 ============
 
-    npm install https://github.com/shstefanov/infrastructure-server-datalayer-mongodb.git
+    npm install infrastructure-mongodb
 
 
 Configuration
@@ -11,11 +11,11 @@ In project_root/config/structures create data.json file (or give other structure
 
     {
       "path":    "data", 
-      "engines": ["infrastructure-server-datalayer-mongodb/engine"],
+      "engines": ["infrastructure-mongodb/engine"],
       "loaders": ["data"],
 
       "libs":{
-        "MongoLayer":    "infrastructure-server-datalayer-mongodb"
+        "MongoLayer":    "infrastructure-server-datalayer-mongodb/MongoLayer"
       },
 
       "config": {
