@@ -1,6 +1,6 @@
 {
   "name": "infrastructure-mongodb",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
   "author": {
     "name": "Stefan Stefanov",
@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": "shstefanov/infrastructure-mongodb",
   "dependencies": {
-    "infrastructure": "git+https://github.com/shstefanov/infrastructure.git#dev",
+    "infrastructure": "^1.0.0",
     "mongodb": "^2.0.46",
     "underscore": "latest"
   },

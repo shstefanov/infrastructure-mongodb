@@ -2,7 +2,7 @@ var assert = require("assert");
 var _      = require("underscore");
 describe("Infrastructure MongoDB DataLayer", function(){
 
-  var MongoLayer = require("../index");
+  var MongoLayer = require("../MongoLayer");
 
   var last_collection, id_counter;
 
