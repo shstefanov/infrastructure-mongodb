@@ -106,4 +106,23 @@ TODO
 Added (0.2.2)
 ========
 
---drop or --drop.ModelName command line options
+    --drop or --drop.ModelName command line options
+
+This will cause layer instance to use it's "seed" property. It can be string (url, fs path, related to project root or dot notated config resolve path). It can be array or single object, and will be seeded directly. It can be function that returns array or object.
+
+    --seed or --seed.ModelName
+
+This will set seed option to string (url, fs path, related to project root or dot notated config resolve path);
+
+    --seed.ModelName=http:eample.com/resource
+    --seed.ModelName=./seeds/ModelsData.json
+    --seed.ModelName=seeds.ModelsData
+
+The last will be resolved from config tree. It can point to object, array or string that will be proceeded too.
+
+It also can point to function (DataLayer instance seed property to be function). 
+
+    function seed(cb){
+      // do something async
+      cb(err, [ /* models here */ ]);
+    }

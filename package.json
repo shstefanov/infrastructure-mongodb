@@ -9,8 +9,9 @@
   "license": "MIT",
   "repository": "shstefanov/infrastructure-mongodb",
   "dependencies": {
-    "infrastructure": "^1.0.0",
+    "infrastructure": "^1.1.0",
     "mongodb": "^2.0.46",
+    "request": "^2.67.0",
     "underscore": "latest"
   },
   "devDependencies": {
