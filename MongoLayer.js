@@ -234,7 +234,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
       }
       else if(Array.isArray(seed_source)) return createRecords(seed_source);
       else if(!seed_source) return cb(null, ctx);
-      else return return createRecords([seed_source]);
+      else return createRecords([seed_source]);
     }
     else cb(null, ctx);
   },

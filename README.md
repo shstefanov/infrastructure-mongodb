@@ -106,6 +106,8 @@ TODO
 Added (0.2.2)
 ========
 
+Note - the cli options will only work with infrastructure version ^1.1.0
+
     --drop or --drop.ModelName command line options
 
 This will cause layer instance to use it's "seed" property. It can be string (url, fs path, related to project root or dot notated config resolve path). It can be array or single object, and will be seeded directly. It can be function that returns array or object.
