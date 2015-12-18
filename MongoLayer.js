@@ -163,7 +163,15 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   handleDropOptions: function(ctx, cb){
     if(!ctx.config.options) return cb(null, ctx);
     var drop = ctx.config.options.drop;
-    if(drop === true || drop[ctx.name] === true){
+    if(drop === true || drop && (drop[ctx.name] === true)){
+      ctx.collection.remove({}, function(err, result){
+        if(err) return cb(err);
+        ctx.env.i.do("log.sys", "DataLayer:mongodb", "Drop all models in \""+ctx.collection.namespace+"\" ("+result.result.n+")")
+        cb(null, ctx);
+      })
+    }
+    else cb(null, ctx);
+  },
       ctx.collection.remove({}, function(err, result){
         if(err) return cb(err);
         ctx.env.i.do("log.sys", "DataLayer:mongodb", "Drop all models in \""+ctx.collection.namespace+"\" ("+result.result.n+")")

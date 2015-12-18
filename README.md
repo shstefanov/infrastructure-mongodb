@@ -103,5 +103,7 @@ TODO
  - patterns to objectify object properties in nested array
 
 
+Added (0.2.2)
+========
 
-
+--drop or --drop.ModelName command line options
