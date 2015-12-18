@@ -110,7 +110,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
     var Prototype   = this;
     self.driver     = env.engines.mongodb;
     self.setupNode  = function(cb){ 
-      Prototype.createCollection(self, env, function(err){
+      Prototype.createCollection(self, env, name, function(err){
         if(err) return cb(err);
         if(self.init) self.init(finish);
         else finish();
@@ -124,22 +124,53 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
 
-  createCollection: function(instance, env, cb){
+  createCollection: function(instance, env, name, cb){
+    var Self = this;
     instance.driver.createCollection(instance.collectionName||instance.name, instance.options || {}, function(err, collection){
       if(err) return cb(err);
       instance.collection = collection;
-      if(instance.index){
-        var ch = [];
-        instance.index.forEach(function(i){
-          ch.push(function(cb){
-            //TODO - get collection indexes and drop removed if any
-            instance.collection.ensureIndex(i.index,i.options||{}, cb); 
-          });
-        });
-        env.helpers.chain(ch)(cb);
-      }
-      else cb();
+
+      var ctx = {
+        name: name,
+        env: env,
+        config: env.config,
+        instance: instance,
+        collection: collection,
+      };
+
+      env.helpers.chain([
+        Self.handleIndexes,
+        Self.handleDropOptions,  // --drop cli option
+      ]).call(Self, ctx, function(err){ cb(err); } );
+
     });
+  },
+
+  handleIndexes: function(ctx, cb){
+    if(ctx.instance.index){
+      var ch = [];
+      ctx.instance.index.forEach(function(i){
+        ch.push(function(cb){
+          //TODO - get collection indexes and drop removed if any
+          ctx.collection.ensureIndex(i.index,i.options||{}, cb); 
+        });
+      });
+      ctx.env.helpers.chain(ch)(function(err){ cb(err, ctx); });
+    }
+    else cb(null, ctx);
+  },
+
+  handleDropOptions: function(ctx, cb){
+    if(!ctx.config.options) return cb(null, ctx);
+    var drop = ctx.config.options.drop;
+    if(drop === true || drop[ctx.name] === true){
+      ctx.collection.remove({}, function(err, result){
+        if(err) return cb(err);
+        ctx.env.i.do("log.sys", "DataLayer:mongodb", "Drop all models in \""+ctx.collection.namespace+"\" ("+result.result.n+")")
+        cb(null, ctx);
+      })
+    }
+    else cb(null, ctx);
   },
 
   extend: function(name, props, statics){
