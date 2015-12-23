@@ -136,11 +136,12 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
         config: env.config,
         instance: instance,
         collection: collection,
+        Prototype: Self,
       };
 
       env.helpers.chain([
         Self.handleIndexes,
-        Self.handleDropOptions,  // --drop cli option
+        Self.handleDropOptions,  // --drop cli option. This method is from infrastructure's Datalayer class
         Self.handleSeedOptions,  // --seed cli option
       ]).call(Self, ctx, function(err){ cb(err); } );
 
@@ -148,7 +149,9 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   handleIndexes: function(ctx, cb){
+    // TODO - make --seed option and execute this only if it is provided
     if(ctx.instance.index){
+      // TODO - compare indexes from instance settings and real database and create/drop any if needed
       var ch = [];
       ctx.instance.index.forEach(function(i){
         ch.push(function(cb){
@@ -162,6 +165,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   handleDropOptions: function(ctx, cb){
+    // TODO - make this to work only if --seed or --migrate options are provided
     if(!ctx.config.options) return cb(null, ctx);
     var drop = ctx.config.options.drop;
     if(drop === true || drop && (drop[ctx.name] === true)){
@@ -169,72 +173,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
         if(err) return cb(err);
         ctx.env.i.do("log.sys", "DataLayer:mongodb", "Drop all models in \""+ctx.collection.namespace+"\" ("+result.result.n+")");
         cb(null, ctx);
-      })
-    }
-    else cb(null, ctx);
-  },
-
-  handleSeedOptions: function(ctx, cb, source){
-    if(!ctx.config.options) return cb(null, ctx);
-    var seed = ctx.config.options.seed;
-    if(seed === true || (seed && seed[ctx.name])){
-      var seed_source;
-      function createRecords(data){
-        if(!Array.isArray(data)) data = [data];
-        ctx.env.helpers.amap(data, function(obj, cb){
-          ctx.instance.create(obj, {}, cb);
-        }, function(err, objects){
-          if(err) return cb(err);
-          console.log(objects);
-          cb(null, ctx);
-        });
-
-      }
-      if(source) seed_source = source;
-      else if(seed === true || seed[ctx.name] === true){
-        // Try to find seed from Layer properties
-        seed_source = ctx.instance.seed;
-      }
-      else seed_source = seed[ctx.name];
-      if(!seed_source) return cb(null, ctx);
-      if(typeof seed_source === "string"){
-        if(seed_source.match(/^https?:\/\//)){  // match url
-          var request = require("request");
-          return request.get(seed_source, function(err, res, body){
-            if(res.statusCode !== 200) return cb("Error "+res.statusCode +" ("+seed_source+")");
-            try{ createRecords(JSON.parse(body)); }
-            catch(err){ return cb(err); }
-          })
-        }
-        else if(seed_source.indexOf("/")!==-1){    // match fs path
-          var path = require("path"), fs = require("fs");
-          seed_source = path.join(process.cwd(), seed_source);
-          if(fs.existsSync(seed_source)){
-            try{ 
-              var seed_data = require(seed_source);
-              if(typeof seed_data === "function") return this.handleSeedOptions(ctx, cb, seed_data);
-              return createRecords(seed_data); 
-            }
-            catch(err){ return cb(err); }
-          }
-          else return cb("Error - can't find file ("+seed_source+")");
-        }
-        else{    // match config path
-          var seed_data = ctx.env.helpers.resolve(ctx.config, seed_source);
-          if(typeof seed_data === "string") return this.handleSeedOptions(ctx, cb, seed_data);
-          else return createRecords(seed_data);
-        }
-        
-      }
-      else if(typeof seed_source === "function"){
-        return seed_source.call(ctx.instance, function(err, models){
-          if(err) return cb(err);
-          createRecords(models);
-        });
-      }
-      else if(Array.isArray(seed_source)) return createRecords(seed_source);
-      else if(!seed_source) return cb(null, ctx);
-      else return createRecords([seed_source]);
+      });
     }
     else cb(null, ctx);
   },

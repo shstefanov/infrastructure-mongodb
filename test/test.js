@@ -24,6 +24,7 @@ describe("Infrastructure MongoDB DataLayer", function(){
   var test_env = {
     i: {do: function(){}},
     helpers: require("infrastructure/lib/helpers"),
+    config: {options:{}},
     engines: {
       mongodb: {
         createCollection: function(name, options, cb){
@@ -73,7 +74,7 @@ describe("Infrastructure MongoDB DataLayer", function(){
 
       });
 
-      var layer = new TestMongoLayer(test_env, TestMongoLayer, "TestMongoLayer");
+      var layer = new TestMongoLayer(test_env, "test", "TestMongoLayer");
 
       layer.setupNode(function(err){
         assert.equal(err, null);

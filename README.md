@@ -10,8 +10,8 @@ Configuration
 In project_root/config/structures create data.json file (or give other structure name) with the following content:
 
     {
-      "path":    "data", 
-      "engines": ["infrastructure-mongodb/engine"],
+      "path":   "data", 
+      "engine": "infrastructure-mongodb/engine",
 
       "config": {
 
@@ -27,7 +27,7 @@ In project_root/config/structures create data.json file (or give other structure
     }
 
 - "path" is folder where your structure modules are located (based on rootDir)
-- "engines" - add path to module that will load mongodb to engines array
+- "engine" - add path to module that will load mongodb to engines array
 - "libs" - adding base mongolayer, base mongolayer class will be accessible via env.lib.MongoLayer
 - "config" - the engine will search for config.mongodb object when trying to connect to database. congig.mongodb.options will be passed directly to mongodb.MongoClient.connect. Read more about options here http://mongodb.github.io/node-mongodb-native/api-generated/mongoclient.html
 
