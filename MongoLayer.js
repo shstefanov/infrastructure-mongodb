@@ -50,9 +50,11 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   find:    function(pattern, options, cb){
-    options = options || {};
-    pattern = this.applyObjectify(pattern || {}, options.$objectify);
-    var publicFields = this.publicFields;
+    options = options || {}, pattern = pattern || {};
+    if (options.$objectify){
+      this.applyObjectify(pattern, options.$objectify);
+      delete options.$objectify;
+    }
     this.collection.find(pattern, options, function(err, cursor){
       if(err) return cb(err);
       cursor.toArray(function(err, docs){
@@ -63,20 +65,29 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   },
 
   count:    function(pattern, options, cb){
-    options = options || {};
-    pattern = this.applyObjectify(pattern || {}, options.$objectify);
+    options = options || {}, pattern = pattern || {};
+    if (options.$objectify){
+      this.applyObjectify(pattern, options.$objectify);
+      delete options.$objectify;
+    }
     this.collection.count(pattern, options, cb);
   },
 
   findOne: function(pattern, options, cb){
-    options = options || {};
-    pattern = this.applyObjectify(pattern || {}, options.$objectify);
+    options = options || {}, pattern = pattern || {};
+    if (options.$objectify){
+      this.applyObjectify(pattern, options.$objectify);
+      delete options.$objectify;
+    }
     this.collection.findOne(pattern, options, cb);
   },
 
   delete:  function(pattern, options, cb){ 
-    options = options || {};
-    pattern = this.applyObjectify(pattern || {}, options.$objectify);
+    options = options || {}, pattern = pattern || {};
+    if (options.$objectify){
+      this.applyObjectify(pattern, options.$objectify);
+      delete options.$objectify;
+    }
     this.collection.remove(pattern, options, function(err, response){
       cb(err? err : null, err? null : response.result);
     });
@@ -84,7 +95,10 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   save:  function(doc, options, cb){
     options = options || {};
-    doc = this.applyObjectify(doc || {}, options.$objectify);
+    if(options.$objectify){
+      this.applyObjectify(doc, options.$objectify);
+      delete options.$objectify;
+    }
     this.collection.save(doc, options, function(err, response){
       if(err) return cb(err);
       cb(null, doc);
@@ -93,8 +107,14 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   update:  function(pattern, update, options, cb){
     if(!cb){ cb = options, options = {}; }
-    pattern = this.applyObjectify(_.omit(pattern, ["$objectify"]), pattern.$objectify );
-    update  = this.applyObjectify(_.omit(update,  ["$objectify"]), update.$objectify  );
+    if (pattern.$objectify){
+      this.applyObjectify(pattern, pattern.$objectify);
+      delete pattern.$objectify;
+    }
+    if (update.$objectify){
+      this.applyObjectify(update, update.$objectify);
+      delete update.$objectify;
+    }
     this.collection.update(pattern, update, options, function(err, response){
       if(err) return cb(err);
       cb(null, pattern);

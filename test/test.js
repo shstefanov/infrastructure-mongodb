@@ -328,7 +328,7 @@ describe("Infrastructure MongoDB DataLayer", function(){
         id_counter = 0;
         layer.save({ _id: 4343, field_a: 99, field_b: "field_b" }, {limit: 10, $objectify: "_id"}, cb_mock );
         assert.deepEqual(last_collection.calls.save, [
-          [{ _id: "objectified:4343", field_a: 99, field_b: "field_b" }, {limit: 10, $objectify: "_id"}, "function"]
+          [{ _id: "objectified:4343", field_a: 99, field_b: "field_b" }, {limit: 10}, "function"]
         ]);
         next();
       });
