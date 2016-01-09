@@ -1,6 +1,6 @@
 {
   "name": "infrastructure-mongodb",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": false,
   "author": {
     "name": "Stefan Stefanov",
@@ -10,6 +10,7 @@
   "repository": "shstefanov/infrastructure-mongodb",
   "dependencies": {
     "infrastructure": "^1.1.0",
+    "kerberos": "0.0.17",
     "mongodb": "^2.0.46",
     "underscore": "latest"
   },

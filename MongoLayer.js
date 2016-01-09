@@ -174,10 +174,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
       // TODO - compare indexes from instance settings and real database and create/drop any if needed
       var ch = [];
       ctx.instance.index.forEach(function(i){
-        ch.push(function(cb){
-          //TODO - get collection indexes and drop removed if any
-          ctx.collection.ensureIndex(i.index,i.options||{}, cb); 
-        });
+        ch.push(function(cb){ ctx.collection.ensureIndex(i.index,i.options||{}, function(err){ cb(err); }); });
       });
       ctx.env.helpers.chain(ch)(function(err){ cb(err, ctx); });
     }
