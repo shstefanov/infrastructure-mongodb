@@ -1,6 +1,6 @@
 {
   "name": "infrastructure-mongodb",
-  "version": "0.3.2",
+  "version": "0.4",
   "private": false,
   "author": {
     "name": "Stefan Stefanov",
