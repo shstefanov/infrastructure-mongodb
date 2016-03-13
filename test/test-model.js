@@ -18,8 +18,8 @@ describe("MongoModel and MongoCollection", function(){
   };
 
   var sync = require("../mongo-backbone-sync.js").bind(env);
-
-  var TestMongoModel = require("../MongoModel").extend("TestMongoModel", {
+  var MongoModel = require("../MongoModel");
+  var TestMongoModel = MongoModel.extend("TestMongoModel", {
 
     dataPath: "testmodels.Test",
     
@@ -295,6 +295,31 @@ describe("MongoModel and MongoCollection", function(){
       next();
     });
 
+  });
+
+  describe("MongoModel inherit cases", function(){
+    it("Inherit timestamp property", function(next){
+      var timestamp_props = {timestamp: true};
+      var modifiers_props = {
+        modifiers: {
+          $objectify: ["prop_a", "prop_b"],
+          $dateify:   ["date_a", "date_b"],
+        }
+      };
+      var Model_A = MongoModel
+        .extend("BaseTimestampsModel", timestamp_props)
+        .extend("FirstModel", modifiers_props);
+      var Model_B = MongoModel
+        .extend("BaseModifiersModel", modifiers_props)
+        .extend("SecondModel", timestamp_props);
+
+        var model_a = new Model_A();
+        var model_b = new Model_B();
+        assert.deepEqual(model_a.pk_modifier, model_b.pk_modifier);
+        assert.deepEqual(model_a.modifiers, model_b.modifiers);
+        assert.deepEqual(model_a.$set_modifiers, model_b.$set_modifiers);
+        next();
+    });
   });
 
 
