@@ -32,7 +32,6 @@ describe("MongoModel and MongoCollection", function(){
     save:    function(data, options){ sync(this.isNew()? "create": (options.patch ? "patch" : "update"), this, options); },
     destroy: function(options)      { sync("delete", this, options || {}); },
 
-
   });
 
   describe("MongoModel without timestamps", function(){
@@ -159,7 +158,6 @@ describe("MongoModel and MongoCollection", function(){
     });
 
   });
-
 
   describe("MongoModel with timestamps", function(){
 
@@ -320,8 +318,186 @@ describe("MongoModel and MongoCollection", function(){
         assert.deepEqual(model_a.$set_modifiers, model_b.$set_modifiers);
         next();
     });
+  
   });
 
+  var MongoCollection = require("../MongoCollection");
+  var TestCollection  =  MongoCollection.extend("TestMongoCollection", {
+    model:   TestMongoModel,
+    fetch:   function(options)      { sync("read", this, options || {});   },
+    // save:    function(options){     sync((options||{}).patch ? "patch" : "update", this, options||{}); },
+    destroy: function(options)      { sync("delete", this, options || {}); },
+  });
 
+  describe("MongoCollection", function(){
+
+    it("MongoCollection#fetch", function(next){
+      var collection = new TestCollection();
+      
+      collection.fetch();
+      var do_call = getDoCalls().shift().slice(0,-1);
+      assert.deepEqual(do_call, [ 'testmodels.Test.find', {}, {} ]);
+
+      collection.fetch({ query: { some_query: 333 }, options: { some_options: 222 } });
+      var do_call = getDoCalls().shift().slice(0,-1);
+      assert.deepEqual(do_call, [ 'testmodels.Test.find', { some_query: 333 }, { some_options: 222 } ]);
+
+      next();
+    });
+
+    it("MongoCollection#save (create)", function(next){
+      var collection = new TestCollection([
+        {prop: "aaa"},
+        {prop: "bbb"},
+      ]);
+
+      var last = collection.last();
+      
+      collection.save({
+        error: next,
+        success: function(){
+          assert.deepEqual(do_calls, [
+            [ "testmodels.Test.create", {prop: "aaa"}, {"$objectify": ["prop_object_id_a","prop_object_id_b"],"$dateify":["prop_date_a","prop_date_b"]}],
+            [ "testmodels.Test.create", {prop: "bbb"}, {"$objectify": ["prop_object_id_a","prop_object_id_b"],"$dateify":["prop_date_a","prop_date_b"]}]
+          ]);
+          next();
+        }
+      });
+
+      var do_calls;
+
+      setTimeout(function(){
+        do_calls = getDoCalls();
+        do_calls.map(function(args){ return args.pop(); }).forEach(function(cb){
+          cb(null, {_id: _.uniqueId()});
+        });
+      }, 100);
+
+    });
+
+    it("MongoCollection#save (update)", function(next){
+      var collection = new TestCollection([
+        {_id: 15, prop: "aaa"},
+        {_id: 16, prop: "bbb"},
+      ]);
+
+      var last = collection.last();
+      
+      collection.save({
+        error: next,
+        success: function(){
+          assert.deepEqual(do_calls, [
+            [ "testmodels.Test.update", {"_id":15,"$objectify":"_id"}, {"prop":"aaa", "$objectify": ["prop_object_id_a","prop_object_id_b"],"$dateify":["prop_date_a","prop_date_b"]}],
+            [ "testmodels.Test.update", {"_id":16,"$objectify":"_id"}, {"prop":"bbb", "$objectify": ["prop_object_id_a","prop_object_id_b"],"$dateify":["prop_date_a","prop_date_b"]}]
+          ]);
+          next();
+        }
+      });
+
+      var do_calls;
+
+      setTimeout(function(){
+        do_calls = getDoCalls();
+        do_calls.map(function(args){ return args.pop(); }).forEach(function(cb){
+          cb(null, {});
+        });
+      }, 100);
+
+    });
+
+    it("MongoCollection#save (patch)", function(next){
+      var collection = new TestCollection([
+        {_id: 15, prop: "aaa"},
+        {_id: 16, prop: "bbb"},
+      ]);
+
+      var last = collection.last();
+      
+      collection.save({
+        patch: true,
+        error: next,
+        success: function(){
+          assert.deepEqual(do_calls, [
+            ["testmodels.Test.update",{"_id":15,"$objectify":"_id"},{"$set":{},"$objectify":["$set.prop_object_id_a","$set.prop_object_id_b"],"$dateify":["$set.prop_date_a","$set.prop_date_b"]}],
+            ["testmodels.Test.update",{"_id":16,"$objectify":"_id"},{"$set":{},"$objectify":["$set.prop_object_id_a","$set.prop_object_id_b"],"$dateify":["$set.prop_date_a","$set.prop_date_b"]}],
+          ]);
+          next();
+        }
+      });
+
+      var do_calls;
+
+      setTimeout(function(){
+        do_calls = getDoCalls();
+        do_calls.map(function(args){ return args.pop(); }).forEach(function(cb){
+          cb(null, {});
+        });
+      }, 100);
+
+    });
+
+    it("MongoCollection#save (mixed)", function(next){
+      var collection = new TestCollection([
+        {custom_prop: "abc", prop: "aaa" },
+        {_id: 16,     prop: "bbb" },
+      ]);
+
+      var last = collection.last();
+      
+      collection.save({
+        patch: true,
+        error: next,
+        success: function(){
+
+          var result = [
+            [ "testmodels.Test.create", {
+              "custom_prop":"abc",
+              "prop":"aaa"
+            },
+            {
+              "$objectify": [
+                "prop_object_id_a",
+                "prop_object_id_b"
+              ],
+              "$dateify": [ 
+                "prop_date_a",
+                "prop_date_b"
+              ]
+            }],
+            [
+              "testmodels.Test.update",
+              {
+                "_id":16,
+                "$objectify":"_id"
+              },
+              {
+                "$set":{},
+                "$objectify":[
+                  "$set.prop_object_id_a","$set.prop_object_id_b"
+                ],
+                "$dateify":[
+                  "$set.prop_date_a",
+                  "$set.prop_date_b"
+                ]
+              }
+            ]
+          ];
+          assert.deepEqual(do_calls, result);
+          next();
+        }
+      });
+
+      var do_calls;
+
+      setTimeout(function(){
+        do_calls = getDoCalls();
+        do_calls.map(function(args){ return args.pop(); }).forEach(function(cb){
+          cb(null, {});
+        });
+      }, 100);
+
+    });
+
+  });
 
 });

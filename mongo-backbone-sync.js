@@ -1,5 +1,6 @@
 var Model      = require("infrastructure/lib/Model");
 var Collection = require("infrastructure/lib/Collection");
+var helpers    = require("infrastructure/lib/helpers");
 var _          = require("underscore");
 var sl = Array.prototype.slice;
 module.exports = function(method, model, options){
@@ -43,7 +44,7 @@ function model_patch (model, options, cb){
     _.extend(model.pick(model.idAttribute), model.pk_modifier),
     _.extend({$set: 
       _.extend(
-        model.changedAttributes(), 
+        model.changedAttributes() || {}, 
         model.timestamps? {updated_at:new Date()}:{}
       )}, model.$set_modifiers),
   cb);
@@ -54,15 +55,14 @@ function model_delete (model, options, cb){
 }
 
 
-function collection_create (){
-
+function collection_read (collection, options, cb){
+  this.i.do( ( collection.dataPath || collection.model.prototype.dataPath ) + ".find",
+    options.query   || {},
+    options.options || {},
+  cb);
 }
 
-function collection_update (){
-
-}
-
-function collection_patch (){
+function collection_sync_save (){
 
 }
 
@@ -70,7 +70,7 @@ function collection_delete (){
 
 }
 
-function collection_read (){
+function collection_create (){
 
 }
 
