@@ -62,7 +62,10 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
     options.$dateify   && this.applyDateify   (docs, options.$dateify   );
     delete options.$objectify;
     delete options.$dateify;
-    this.collection[Array.isArray(docs)? "insertMany" : "insertOne" ](docs, cb);
+    this.collection[Array.isArray(docs)? "insertMany" : "insertOne" ](docs, function(err, result){
+      if(err) return cb(err);
+      cb(null, Array.isArray(docs)? result.ops[0] : result.ops );
+    });
   },
 
   find:    function(pattern, options, cb){
