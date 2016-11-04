@@ -41,20 +41,39 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   },
 
+  applyDateify: function(obj, patterns){
+    if(!patterns) return obj;
+    if(typeof patterns === "string") patterns = [patterns];
+    if(Array.isArray(obj)) {var self = this; return obj.map(function(model){ return self.applyDateify(model, patterns); });}
+    var helpers = this.env.helpers;
+    for(var i = 0; i<patterns.length; i++){
+      var value = helpers.resolve(obj, patterns[i]);
+      if(!value) continue;
+      helpers.patch(obj, patterns[i], new Date(value) );
+    }
+
+    return obj;
+
+  },
+
   create:  function(docs, options, cb){
     var self = this;
-    docs = this.applyObjectify(docs, options.$objectify);
+    options.$objectify && this.applyObjectify (docs, options.$objectify );
+    options.$dateify   && this.applyDateify   (docs, options.$dateify   );
+    delete options.$objectify;
+    delete options.$dateify;
     this.collection[Array.isArray(docs)? "insertMany" : "insertOne" ](docs, function(err, result){
-      cb(err? err : null, err? null : docs);
+      if(err) return cb(err);
+      cb(null, Array.isArray(docs) ? result.ops : result.ops[0] );
     });
   },
 
   find:    function(pattern, options, cb){
     options = options || {}, pattern = pattern || {};
-    if (options.$objectify){
-      this.applyObjectify(pattern, options.$objectify);
-      delete options.$objectify;
-    }
+    options.$objectify && this.applyObjectify (pattern, options.$objectify );
+    options.$dateify   && this.applyDateify   (pattern, options.$dateify   );
+    delete options.$objectify;
+    delete options.$dateify;
     this.collection.find(pattern, options, function(err, cursor){
       if(err) return cb(err);
       cursor.toArray(function(err, docs){
@@ -66,28 +85,28 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   count:    function(pattern, options, cb){
     options = options || {}, pattern = pattern || {};
-    if (options.$objectify){
-      this.applyObjectify(pattern, options.$objectify);
-      delete options.$objectify;
-    }
+    options.$objectify && this.applyObjectify (pattern, options.$objectify );
+    options.$dateify   && this.applyDateify   (pattern, options.$dateify   );
+    delete options.$objectify;
+    delete options.$dateify;
     this.collection.count(pattern, options, cb);
   },
 
   findOne: function(pattern, options, cb){
     options = options || {}, pattern = pattern || {};
-    if (options.$objectify){
-      this.applyObjectify(pattern, options.$objectify);
-      delete options.$objectify;
-    }
+    options.$objectify && this.applyObjectify (pattern, options.$objectify );
+    options.$dateify   && this.applyDateify   (pattern, options.$dateify   );
+    delete options.$objectify;
+    delete options.$dateify;
     this.collection.findOne(pattern, options, cb);
   },
 
   delete:  function(pattern, options, cb){ 
     options = options || {}, pattern = pattern || {};
-    if (options.$objectify){
-      this.applyObjectify(pattern, options.$objectify);
-      delete options.$objectify;
-    }
+    options.$objectify && this.applyObjectify (pattern, options.$objectify );
+    options.$dateify   && this.applyDateify   (pattern, options.$dateify   );
+    delete options.$objectify;
+    delete options.$dateify;
     this.collection.remove(pattern, options, function(err, response){
       cb(err? err : null, err? null : response.result);
     });
@@ -95,10 +114,10 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   save:  function(doc, options, cb){
     options = options || {};
-    if(options.$objectify){
-      this.applyObjectify(doc, options.$objectify);
-      delete options.$objectify;
-    }
+    options.$objectify && this.applyObjectify (doc, options.$objectify );
+    options.$dateify   && this.applyDateify   (doc, options.$dateify   );
+    delete options.$objectify;
+    delete options.$dateify;
     this.collection.save(doc, options, function(err, response){
       if(err) return cb(err);
       cb(null, doc);
@@ -107,14 +126,14 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
 
   update:  function(pattern, update, options, cb){
     if(!cb){ cb = options, options = {}; }
-    if (pattern.$objectify){
-      this.applyObjectify(pattern, pattern.$objectify);
-      delete pattern.$objectify;
-    }
-    if (update.$objectify){
-      this.applyObjectify(update, update.$objectify);
-      delete update.$objectify;
-    }
+    pattern.$objectify && this.applyObjectify (pattern, pattern.$objectify );
+    pattern.$dateify   && this.applyDateify   (pattern, pattern.$dateify   );
+    update.$objectify  && this.applyObjectify (update,  update.$objectify  );
+    update.$dateify    && this.applyDateify   (update,  update.$dateify    );
+    delete pattern.$objectify;
+    delete pattern.$dateify;
+    delete update.$objectify;
+    delete update.$dateify;
     this.collection.update(pattern, update, options, function(err, response){
       if(err) return cb(err);
       cb(null, pattern);
@@ -123,7 +142,7 @@ module.exports     = DataLayer.extend("MongoDBLayer", {
   
 }, {
 
-  baseMethods: DataLayer.baseMethods.concat(["parseArguments", "applyObjectify", "init"]),
+  baseMethods: DataLayer.baseMethods.concat(["parseArguments", "applyObjectify", "init", "applyDateify"]),
 
 
   setupDatabase: function(self, env, name){

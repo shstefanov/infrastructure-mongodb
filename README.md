@@ -99,7 +99,6 @@ Once structure is initialized, datalayer can be called from any other local or r
 TODO
 ====
 
- - $dateify for creating date objects
  - patterns to objectify object properties in nested array
 
 
@@ -128,3 +127,11 @@ It also can point to function (DataLayer instance seed property to be function).
       // do something async
       cb(err, [ /* models here */ ]);
     }
+
+
+Added (0.4)
+===========
+
+ - $dateify option (same as $objectify, but makes dates)
+ - MongoModel - require("infrastructure-mongodb/MongoModel")
+ - MongoCollection - require("infrastructure-mongodb/MongoCollection")
